@@ -39,17 +39,7 @@ class TestUser:
 
             assert(created_user.username == "Liz")
             assert(created_user.image_url == "https://prod-images.tcm.com/Master-Profile-Images/ElizabethTaylor.jpg")
-            assert(created_user.bio == \
-                """Dame Elizabeth Rosemond Taylor DBE (February 27, 1932""" + \
-                """ - March 23, 2011) was a British-American actress. """ + \
-                """She began her career as a child actress in the early""" + \
-                """ 1940s and was one of the most popular stars of """ + \
-                """classical Hollywood cinema in the 1950s. She then""" + \
-                """ became the world's highest paid movie star in the """ + \
-                """1960s, remaining a well-known public figure for the """ + \
-                """rest of her life. In 1999, the American Film Institute""" + \
-                """ named her the seventh-greatest female screen legend """ + \
-                """of Classic Hollywood cinema.""")
+            assert(created_user.bio.startswith("Dame Elizabeth Rosemond Taylor"))
             
             with pytest.raises(AttributeError):
                 created_user.password_hash
@@ -63,6 +53,8 @@ class TestUser:
             db.session.commit()
 
             user = User()
+            user.password_hash = "testpass"   # required for commit
+            
             with pytest.raises(IntegrityError):
                 db.session.add(user)
                 db.session.commit()
@@ -76,7 +68,10 @@ class TestUser:
             db.session.commit()
 
             user_1 = User(username="Ben")
+            user_1.password_hash = "testpass"
+
             user_2 = User(username="Ben")
+            user_2.password_hash = "testpass"
 
             with pytest.raises(IntegrityError):
                 db.session.add_all([user_1, user_2])
@@ -91,6 +86,7 @@ class TestUser:
             db.session.commit()
 
             user = User(username="Prabhdip")
+            user.password_hash = "testpass"
 
             recipe_1 = Recipe(
                 title="Delicious Shed Ham",

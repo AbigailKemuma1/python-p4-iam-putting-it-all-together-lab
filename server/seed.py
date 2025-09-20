@@ -1,63 +1,44 @@
-#!/usr/bin/env python3
-
-from random import randint, choice as rc
-
-from faker import Faker
-
-from app import app
-from models import db, Recipe, User
-
-fake = Faker()
+from config import app, db
+from models import User, Recipe
 
 with app.app_context():
-
-    print("Deleting all records...")
-    Recipe.query.delete()
+    # Clear out old data
     User.query.delete()
+    Recipe.query.delete()
 
-    fake = Faker()
+    # Create users with passwords
+    u1 = User(
+        username="Prabhdip",
+        image_url="https://picsum.photos/200",
+        bio="Loves cooking Punjabi dishes"
+    )
+    u1.password_hash = "password123"   # ✅ sets the hashed password
 
-    print("Creating users...")
+    u2 = User(
+        username="Elissa",
+        image_url="https://picsum.photos/200",
+        bio="Enjoys baking and coding"
+    )
+    u2.password_hash = "supersecret"   # ✅ sets the hashed password
 
-    # make sure users have unique usernames
-    users = []
-    usernames = []
-
-    for i in range(20):
-        
-        username = fake.first_name()
-        while username in usernames:
-            username = fake.first_name()
-        usernames.append(username)
-
-        user = User(
-            username=username,
-            bio=fake.paragraph(nb_sentences=3),
-            image_url=fake.url(),
-        )
-
-        user.password_hash = user.username + 'password'
-
-        users.append(user)
-
-    db.session.add_all(users)
-
-    print("Creating recipes...")
-    recipes = []
-    for i in range(100):
-        instructions = fake.paragraph(nb_sentences=8)
-        
-        recipe = Recipe(
-            title=fake.sentence(),
-            instructions=instructions,
-            minutes_to_complete=randint(15,90),
-        )
-
-        recipe.user = rc(users)
-
-        recipes.append(recipe)
-
-    db.session.add_all(recipes)
-    
+    db.session.add_all([u1, u2])
     db.session.commit()
-    print("Complete.")
+
+    # Create recipes
+    r1 = Recipe(
+        title="Chana Masala",
+        instructions="Soak chickpeas overnight, cook with spices.",
+        minutes_to_complete=45,
+        user=u1
+    )
+    r2 = Recipe(
+        title="Chocolate Cake",
+        instructions="Mix ingredients, bake at 180C for 30 minutes.",
+        minutes_to_complete=60,
+        user=u2
+    )
+
+    db.session.add_all([r1, r2])
+    db.session.commit()
+
+    print("✅ Database seeded successfully!")
